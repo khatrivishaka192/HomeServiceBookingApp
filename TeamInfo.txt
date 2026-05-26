@@ -1,0 +1,34 @@
+========================================================================
+                      PROJECT TEAM INFORMATION
+========================================================================
+
+Project Name: Mahir Home Services Booking Application
+Course Title: Hybrid Mobile Application Development
+Term/Section: Spring 2026
+
+------------------------------------------------------------------------
+                             TEAM MEMBERS
+------------------------------------------------------------------------
+
+Student 1:
+- Full Name: [Insert Name 1]
+- Registration ID: [Insert Reg ID 1]
+- Role: Lead Mobile Developer (React Native & Context API Integration)
+
+Student 2:
+- Full Name: [Insert Name 2]
+- Registration ID: [Insert Reg ID 2]
+- Role: Backend Developer (Node.js, Express, & MongoDB API Setup)
+
+Student 3:
+- Full Name: [Insert Name 3]
+- Registration ID: [Insert Reg ID 3]
+- Role: UI/UX Designer & Technical Documentation
+
+========================================================================
+                       PROJECT ARCHITECTURE
+========================================================================
+- Frontend: React Native (Expo SDK 54, React Context API, Expo Router)
+- Backend: Node.js, Express.js
+- Database: MongoDB (Mongoose ORM)
+========================================================================
