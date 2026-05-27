@@ -12,10 +12,13 @@ export default function AppImage({ uri, style, contentFit = 'cover', fallbackUri
     setSourceUri(uri || fallbackUri);
   }, [uri, fallbackUri]);
 
+  // If uri is a string (remote URL), wrap it in an object with a uri key. Otherwise, pass it directly (for local required assets).
+  const imageSource = typeof sourceUri === 'string' ? { uri: sourceUri } : sourceUri;
+
   return (
     <View style={[styles.wrap, style]}>
       <Image
-        source={{ uri: sourceUri }}
+        source={imageSource}
         style={StyleSheet.absoluteFill}
         contentFit={contentFit}
         transition={250}

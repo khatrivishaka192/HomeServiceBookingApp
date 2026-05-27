@@ -8,11 +8,10 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-
-import { COLORS, SHADOW } from '../constants/appTheme';
-import ScreenContainer from '../components/ScreenContainer';
-import { useAuth } from '../context/AuthContext';
-import { useResponsive } from '../hooks/useResponsive';
+import { COLORS, SHADOW } from '../../constants/appTheme';
+import ScreenContainer from '../../components/ScreenContainer';
+import { useAuth } from '../../context/AuthContext';
+import { useResponsive } from '../../hooks/useResponsive';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -23,7 +22,6 @@ export default function AdminLoginScreen() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -46,6 +44,7 @@ export default function AdminLoginScreen() {
       const result = await loginUser({
         email,
         password,
+        isAdminLogin: true, // Forces checking role === 'admin'
       });
 
       if (!result.success) {
@@ -53,17 +52,9 @@ export default function AdminLoginScreen() {
         return;
       }
 
-      // ADMIN CHECK
-      if (result.user.role !== 'admin') {
-        setError('Access denied. Admin account required.');
-        return;
-      }
-
-      // OPEN ADMIN PANEL
-      router.replace('/admin');
-
-    } catch (error) {
-      setError('Something went wrong.');
+      router.replace('/admin/dashboard');
+    } catch (err) {
+      setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -76,8 +67,7 @@ export default function AdminLoginScreen() {
       contentStyle={[styles.formWrap, { maxWidth: formMaxWidth }]}
       scrollContentStyle={styles.scrollContent}>
 
-      <Text style={styles.heading}>Admin Panel</Text>
-
+      <Text style={styles.heading}>Admin Portal</Text>
       <Text style={styles.subHeading}>
         Secure administrator access
       </Text>
@@ -105,6 +95,7 @@ export default function AdminLoginScreen() {
         value={password}
         onChangeText={setPassword}
         editable={!loading}
+        onSubmitEditing={handleAdminLogin}
       />
 
       <Pressable
@@ -124,9 +115,8 @@ export default function AdminLoginScreen() {
       <TouchableOpacity
         style={styles.switchWrap}
         onPress={() => router.push('/login')}>
-
         <Text style={styles.switchText}>
-          Back to User Login
+          Back to Customer Login
         </Text>
       </TouchableOpacity>
 
@@ -139,33 +129,28 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
   },
-
   formWrap: {
     width: '100%',
     alignSelf: 'center',
     paddingVertical: 24,
   },
-
   heading: {
     fontSize: 30,
     fontWeight: '800',
     color: COLORS.text,
   },
-
   subHeading: {
     marginTop: 6,
     marginBottom: 24,
     color: COLORS.subText,
     fontSize: 14,
   },
-
   errorText: {
     color: COLORS.danger,
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 12,
   },
-
   input: {
     backgroundColor: COLORS.white,
     color: COLORS.text,
@@ -176,7 +161,6 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     marginBottom: 12,
   },
-
   primaryBtn: {
     backgroundColor: COLORS.primary,
     borderRadius: 14,
@@ -187,22 +171,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...SHADOW,
   },
-
   primaryBtnDisabled: {
     opacity: 0.7,
   },
-
   primaryBtnText: {
     color: COLORS.white,
     fontWeight: '700',
     fontSize: 16,
   },
-
   switchWrap: {
     marginTop: 20,
     alignItems: 'center',
   },
-
   switchText: {
     color: COLORS.primary,
     fontWeight: '700',

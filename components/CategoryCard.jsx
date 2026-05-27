@@ -17,7 +17,7 @@ export default function CategoryCard({ item, onPress, fullWidth = false }) {
         isDesktop && styles.cardDesktop,
       ]}
       onPress={() => onPress?.(item)}>
-      <View style={styles.image}>
+      <View style={[styles.image, isDesktop && styles.imageDesktop]}>
         <AppImage uri={item.image} style={styles.imageFill} fallbackUri={DEFAULT_CATEGORY_IMAGE} />
         <View style={styles.imageOverlay}>
           <View style={styles.iconWrap}>
@@ -52,6 +52,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: 'hidden',
     marginBottom: 10,
+  },
+  imageDesktop: {
+    height: 145,
   },
   imageFill: {
     width: '100%',

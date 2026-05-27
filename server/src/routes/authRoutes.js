@@ -2,6 +2,8 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User.js';
+import { Notification } from '../models/Notification.js';
+import { signupValidation, loginValidation } from '../middleware/validation.js';
 
 const router = express.Router();
 
@@ -21,25 +23,13 @@ function sendAuthSuccess(res, user, statusCode = 200) {
   });
 }
 
-router.post('/signup', async (req, res) => {
+router.post('/signup', signupValidation, async (req, res) => {
   try {
     const name = String(req.body.name || '').trim();
     const email = String(req.body.email || '').trim().toLowerCase();
     const password = String(req.body.password || '');
     const phone = String(req.body.phone || '').trim();
     const role = req.body.role === 'provider' ? 'provider' : 'customer';
-
-    if (name.length < 3) {
-      return res.status(400).json({ success: false, message: 'Name must be at least 3 characters long.' });
-    }
-
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Email and password are required.' });
-    }
-
-    if (password.length < 6) {
-      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters.' });
-    }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -55,6 +45,22 @@ router.post('/signup', async (req, res) => {
       role,
     });
 
+    // Notify all admin users of the new signup
+    try {
+      const admins = await User.find({ role: 'admin' });
+      const adminNotifications = admins.map(admin => ({
+        userId: admin._id,
+        title: 'New User Registered',
+        message: `${user.name} (${user.email}) has signed up as a ${user.role}.`,
+        type: 'general'
+      }));
+      if (adminNotifications.length > 0) {
+        await Notification.insertMany(adminNotifications);
+      }
+    } catch (notifErr) {
+      console.error('Error creating admin notification for signup:', notifErr);
+    }
+
     return sendAuthSuccess(res, user, 201);
   } catch (error) {
     if (error?.code === 11000) {
@@ -65,14 +71,10 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', loginValidation, async (req, res) => {
   try {
     const email = String(req.body.email || '').trim().toLowerCase();
     const password = String(req.body.password || '');
-
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Email and password are required.' });
-    }
 
     const user = await User.findOne({ email }).select('+password');
     if (!user) {

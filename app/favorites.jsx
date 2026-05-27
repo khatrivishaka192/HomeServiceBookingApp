@@ -6,10 +6,12 @@ import { COLORS, SHADOW } from '../constants/appTheme';
 import ScreenContainer from '../components/ScreenContainer';
 import { useBookings } from '../context/BookingsContext';
 import { services } from '../data/services';
+import { useResponsive } from '../hooks/useResponsive';
 
 export default function FavoritesScreen() {
   const router = useRouter();
   const { favorites, toggleFavoriteService } = useBookings();
+  const { isDesktop } = useResponsive();
 
   // Filter static services to display saved favorites
   const favoriteServices = services.filter((item) => favorites.includes(item.id));
@@ -23,6 +25,9 @@ export default function FavoritesScreen() {
         style={styles.list}
         data={favoriteServices}
         keyExtractor={(item) => item.id}
+        numColumns={isDesktop ? 2 : 1}
+        key={isDesktop ? 'grid' : 'list'}
+        columnWrapperStyle={isDesktop ? styles.gridRow : undefined}
         contentContainerStyle={[styles.listContent, favoriteServices.length === 0 && styles.listEmpty]}
         ListEmptyComponent={
           <View style={styles.emptyWrap}>
@@ -36,7 +41,11 @@ export default function FavoritesScreen() {
         }
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Image source={{ uri: item.image || 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=150' }} style={styles.image} />
+            {(() => {
+              const rawSource = item.image || 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=150';
+              const imgSource = typeof rawSource === 'string' ? { uri: rawSource } : rawSource;
+              return <Image source={imgSource} style={styles.image} />;
+            })()}
             <View style={styles.body}>
               <View style={styles.cardHeader}>
                 <Text style={styles.category}>{item.category.toUpperCase()}</Text>
@@ -76,6 +85,9 @@ const styles = StyleSheet.create({
   },
   list: {
     flex: 1,
+  },
+  gridRow: {
+    gap: 14,
   },
   listContent: {
     paddingBottom: 24,

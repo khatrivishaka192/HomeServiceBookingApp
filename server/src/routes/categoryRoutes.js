@@ -1,6 +1,7 @@
 import express from 'express';
 import { Category } from '../models/Category.js';
 import { authenticate } from '../middleware/auth.js';
+import { categoryValidation } from '../middleware/validation.js';
 
 const router = express.Router();
 
@@ -61,17 +62,27 @@ const authorizeAdmin = async (req, res, next) => {
   }
 };
 
-// 1. Get all categories (Public)
+// 1. Get all categories (Public & Admin search)
 router.get('/', async (req, res) => {
   try {
     await seedCategoriesIfNeeded();
-    const query = {};
+    const { query: searchQuery } = req.query;
+    const filter = {};
+    
     // If not admin, return only active categories
     const header = req.headers.authorization || '';
     if (!header) {
-      query.status = 'active';
+      filter.status = 'active';
     }
-    const categories = await Category.find(query).sort({ categoryId: 1 });
+
+    if (searchQuery) {
+      filter.$or = [
+        { name: new RegExp(searchQuery, 'i') },
+        { description: new RegExp(searchQuery, 'i') }
+      ];
+    }
+
+    const categories = await Category.find(filter).sort({ categoryId: 1 });
     return res.json({ success: true, categories });
   } catch (error) {
     console.error('Fetch categories error:', error);
@@ -94,13 +105,9 @@ router.get('/:categoryId', async (req, res) => {
 });
 
 // 3. Create a new category (Admin Only)
-router.post('/', authenticate, authorizeAdmin, async (req, res) => {
+router.post('/', authenticate, authorizeAdmin, categoryValidation, async (req, res) => {
   try {
     const { categoryId, name, image, icon, description } = req.body;
-
-    if (!categoryId || !name) {
-      return res.status(400).json({ success: false, message: 'Category ID and Name are required.' });
-    }
 
     const exists = await Category.findOne({ categoryId });
     if (exists) {

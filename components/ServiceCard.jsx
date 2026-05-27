@@ -6,13 +6,13 @@ import { useResponsive } from '../hooks/useResponsive';
 import AppImage from './AppImage';
 
 export default function ServiceCard({ item, onPress, compact = false }) {
-  const { serviceCardWidth } = useResponsive();
+  const { serviceCardWidth, isDesktop } = useResponsive();
 
   return (
     <Pressable
       style={[styles.card, compact ? styles.compactCard : { width: serviceCardWidth }]}
       onPress={() => onPress?.(item)}>
-      <AppImage uri={item.image} style={[styles.image, compact && styles.compactImage]} />
+      <AppImage uri={item.image} style={[styles.image, compact && styles.compactImage, isDesktop && styles.imageDesktop]} />
       <View style={styles.content}>
         <Text numberOfLines={1} style={styles.name}>
           {item.name}
@@ -44,6 +44,9 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: 130,
+  },
+  imageDesktop: {
+    height: 185,
   },
   compactImage: {
     height: 140,

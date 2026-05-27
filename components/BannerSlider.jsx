@@ -6,7 +6,7 @@ import { DEFAULT_SERVICE_IMAGE } from '../constants/images';
 import { useResponsive } from '../hooks/useResponsive';
 
 export default function BannerSlider({ banners }) {
-  const { bannerWidth } = useResponsive();
+  const { bannerWidth, isDesktop } = useResponsive();
 
   return (
     <FlatList
@@ -18,15 +18,21 @@ export default function BannerSlider({ banners }) {
       snapToInterval={bannerWidth + 12}
       decelerationRate="fast"
       renderItem={({ item }) => (
-        <View style={[styles.banner, { width: bannerWidth }]}>
-          <Image
-            source={{ uri: item.image || DEFAULT_SERVICE_IMAGE }}
-            style={StyleSheet.absoluteFill}
-            contentFit="cover"
-            transition={250}
-            placeholder={{ color: COLORS.primaryLight }}
-          />
-          <View style={styles.overlay}>
+        <View style={[styles.banner, { width: bannerWidth }, isDesktop && styles.bannerDesktop]}>
+          {(() => {
+            const rawSource = item.image || DEFAULT_SERVICE_IMAGE;
+            const imgSource = typeof rawSource === 'string' ? { uri: rawSource } : rawSource;
+            return (
+              <Image
+                source={imgSource}
+                style={StyleSheet.absoluteFill}
+                contentFit="cover"
+                transition={250}
+                placeholder={{ color: COLORS.primaryLight }}
+              />
+            );
+          })()}
+          <View style={[styles.overlay, isDesktop && styles.overlayDesktop]}>
             <Text style={styles.bannerTitle}>{item.title}</Text>
             <Text style={styles.bannerSub}>{item.subtitle}</Text>
           </View>
@@ -44,12 +50,19 @@ const styles = StyleSheet.create({
     minHeight: 150,
     ...SHADOW,
   },
+  bannerDesktop: {
+    minHeight: 250,
+  },
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
     padding: 18,
     backgroundColor: 'rgba(10, 14, 28, 0.55)',
     minHeight: 150,
+  },
+  overlayDesktop: {
+    minHeight: 250,
+    padding: 24,
   },
   bannerTitle: {
     color: '#FFFFFF',

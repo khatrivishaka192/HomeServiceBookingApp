@@ -3,25 +3,25 @@ export const categories = [
     id: 'c1',
     name: 'Deep Cleaning',
     icon: 'sparkles-outline',
-    image: 'https://picsum.photos/seed/mahir-cleaning/900/600',
+    image:  require('../assets/images/cleaning.png'),
   },
   {
     id: 'c2',
     name: 'Plumber',
     icon: 'water-outline',
-    image: 'https://picsum.photos/seed/mahir-plumber/900/600',
+    image: require('../assets/images/plumber.png'),
   },
   {
     id: 'c3',
     name: 'Electrician',
     icon: 'flash-outline',
-    image: 'https://picsum.photos/seed/mahir-electric/900/600',
+     image: require('../assets/images/electrician.png'),
   },
   {
     id: 'c4',
     name: 'Home Appliances Repair',
     icon: 'hardware-chip-outline',
-    image: 'https://picsum.photos/seed/mahir-appliance/900/600',
+    image: require('../assets/images/home.png'),
   },
 ];
 
@@ -30,19 +30,14 @@ export const banners = [
     id: 'b1',
     title: 'Premium Home Care',
     subtitle: 'Trusted professionals at your doorstep',
-    image: 'https://picsum.photos/seed/mahir-banner1/900/500',
+    image: require('../assets/images/premium.png'),
   },
+
   {
     id: 'b2',
-    title: 'Flat 20% Off',
-    subtitle: 'On deep cleaning and appliance repair',
-    image: 'https://picsum.photos/seed/mahir-banner2/900/500',
-  },
-  {
-    id: 'b3',
     title: 'Quick 60-min Service',
     subtitle: 'Fast response for urgent requests',
-    image: 'https://picsum.photos/seed/mahir-banner3/900/500',
+     image: require('../assets/images/quick.png'),
   },
 ];
 
@@ -55,7 +50,7 @@ export const services = [
     description: 'Complete apartment deep cleaning including rooms, washrooms, and balcony.',
     price: 2499,
     rating: 4.8,
-    image: 'https://picsum.photos/seed/mahir-s1/900/600',
+    image: require('../assets/images/apartment.png'),
   },
   {
     id: 's2',
@@ -65,7 +60,7 @@ export const services = [
     description: 'Premium bungalow cleaning with staircase, windows, and bathroom detailing.',
     price: 4999,
     rating: 4.9,
-    image: 'https://picsum.photos/seed/mahir-s2/900/600',
+    image: require('../assets/images/bunglow.png'),
   },
   {
     id: 's3',
@@ -75,7 +70,7 @@ export const services = [
     description: 'Grease removal, cabinet wipe-down, sink scrub, and appliance surface clean.',
     price: 1599,
     rating: 4.7,
-    image: 'https://picsum.photos/seed/mahir-s3/900/600',
+     image: require('../assets/images/kitchen.png'),
   },
   {
     id: 's4',
@@ -85,7 +80,7 @@ export const services = [
     description: 'Instant repair for leaking taps, pipes, and bathroom fittings.',
     price: 699,
     rating: 4.6,
-    image: 'https://picsum.photos/seed/mahir-s4/900/600',
+    image: require('../assets/images/tap.png'),
   },
   {
     id: 's5',
@@ -95,7 +90,7 @@ export const services = [
     description: 'Sink choking, drain cleaning, and mixer installation by trained plumber.',
     price: 899,
     rating: 4.6,
-    image: 'https://picsum.photos/seed/mahir-s5/900/600',
+    image: require('../assets/images/sink.png'),
   },
   {
     id: 's6',
@@ -105,7 +100,7 @@ export const services = [
     description: 'Installation of shower sets, flush tanks, and health faucets.',
     price: 1099,
     rating: 4.7,
-    image: 'https://picsum.photos/seed/mahir-s6/900/600',
+    image: require('../assets/images/bath.png'),
   },
   {
     id: 's7',
@@ -115,7 +110,7 @@ export const services = [
     description: 'Safe repair for switches, sockets, and minor wiring faults.',
     price: 799,
     rating: 4.7,
-    image: 'https://picsum.photos/seed/mahir-s7/900/600',
+    image: require('../assets/images/switch.png'),
   },
   {
     id: 's8',
@@ -125,47 +120,38 @@ export const services = [
     description: 'Ceiling fan, LED panel, and decorative light installation service.',
     price: 999,
     rating: 4.8,
-    image: 'https://picsum.photos/seed/mahir-s8/900/600',
+    image: require('../assets/images/fan.png'),
   },
+ 
   {
     id: 's9',
-    categoryId: 'c3',
-    name: 'MCB & Wiring Inspection',
-    category: 'Electrician',
-    description: 'Home safety check for wiring load, MCB, and earthing points.',
-    price: 1299,
-    rating: 4.9,
-    image: 'https://picsum.photos/seed/mahir-s9/900/600',
-  },
-  {
-    id: 's10',
     categoryId: 'c4',
     name: 'Washing Machine Repair',
     category: 'Home Appliances Repair',
     description: 'Drum noise, spin issues, and drainage problem diagnostics with repair.',
     price: 1399,
     rating: 4.8,
-    image: 'https://picsum.photos/seed/mahir-s10/900/600',
+    image: require('../assets/images/washing.png'),
   },
   {
-    id: 's11',
+    id: 's10',
     categoryId: 'c4',
     name: 'Refrigerator Service',
     category: 'Home Appliances Repair',
     description: 'Cooling issue fix, gas check, and compressor health assessment.',
     price: 1699,
     rating: 4.7,
-    image: 'https://picsum.photos/seed/mahir-s11/900/600',
+    image: require('../assets/images/fridge.png'),
   },
   {
-    id: 's12',
+    id: 's11',
     categoryId: 'c4',
     name: 'Microwave Oven Repair',
     category: 'Home Appliances Repair',
     description: 'Heating and control panel repair with genuine spare replacement support.',
     price: 1199,
     rating: 4.6,
-    image: 'https://picsum.photos/seed/mahir-s12/900/600',
+     image: require('../assets/images/oven.png'),
   },
 ];
 

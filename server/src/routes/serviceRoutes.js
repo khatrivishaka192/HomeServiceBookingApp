@@ -1,6 +1,7 @@
 import express from 'express';
 import { Service } from '../models/Service.js';
 import { authenticate } from '../middleware/auth.js';
+import { serviceValidation } from '../middleware/validation.js';
 
 const router = express.Router();
 
@@ -225,13 +226,9 @@ router.get('/:serviceId', async (req, res) => {
 });
 
 // 3. Create a new service (Admin Only)
-router.post('/', authenticate, authorizeAdmin, async (req, res) => {
+router.post('/', authenticate, authorizeAdmin, serviceValidation, async (req, res) => {
   try {
     const { serviceId, categoryId, name, category, description, price, duration, image, featured } = req.body;
-
-    if (!serviceId || !categoryId || !name || !price || !category) {
-      return res.status(400).json({ success: false, message: 'Service ID, Category ID, Name, Category Name, and Price are required.' });
-    }
 
     const exists = await Service.findOne({ serviceId });
     if (exists) {

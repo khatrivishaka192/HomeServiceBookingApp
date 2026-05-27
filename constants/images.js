@@ -1,7 +1,7 @@
 // Reliable image URLs (picsum seeds load consistently on mobile & web)
 export const DEFAULT_SERVICE_IMAGE = 'https://picsum.photos/seed/mahir-service/900/600';
 export const DEFAULT_CATEGORY_IMAGE = 'https://picsum.photos/seed/mahir-category/900/600';
-export const HERO_HOME_IMAGE = 'https://picsum.photos/seed/mahir-hero/1200/700';
+export const HERO_HOME_IMAGE = require('../assets/images/herohome.png');
 export const SUPPORT_OFFICE_IMAGE = 'https://picsum.photos/seed/mahir-office/900/500';
 
 export const COMPANY = {

@@ -14,6 +14,7 @@ import uploadRoutes from './routes/uploadRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import serviceRoutes from './routes/serviceRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import { sanitizeInput } from './middleware/sanitize.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -24,6 +25,7 @@ app.use(helmet({
 }));
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
+app.use(sanitizeInput);
 
 // Rate Limiter to prevent brute force attacks
 const apiLimiter = rateLimit({

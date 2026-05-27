@@ -1,5 +1,6 @@
 import express from 'express';
 import { Booking } from '../models/Booking.js';
+import { User } from '../models/User.js';
 import { Notification } from '../models/Notification.js';
 import { authenticate } from '../middleware/auth.js';
 import { generateBookingId } from '../utils/generateBookingId.js';
@@ -71,8 +72,21 @@ router.post('/', async (req, res) => {
       type: 'booking'
     });
 
-    // Admin Notification trigger simulation
-    console.log(`[Admin Log] New booking ${booking.bookingId} placed by user ${req.user.name}.`);
+    // Notify all admin users of the new booking placement
+    try {
+      const admins = await User.find({ role: 'admin' });
+      const adminNotifications = admins.map(admin => ({
+        userId: admin._id,
+        title: 'New Booking Placed',
+        message: `Booking ${booking.bookingId} for ${primaryServiceType} ($${resolvedTotal}) has been placed by ${req.user.name}.`,
+        type: 'booking'
+      }));
+      if (adminNotifications.length > 0) {
+        await Notification.insertMany(adminNotifications);
+      }
+    } catch (notifErr) {
+      console.error('Error creating admin notification for booking:', notifErr);
+    }
 
     return res.status(201).json({
       success: true,
@@ -129,6 +143,22 @@ router.post('/:id/cancel', async (req, res) => {
       message: `Your booking ${booking.bookingId} has been successfully cancelled. Reason: ${reason || 'User cancelled'}. Refund status: ${refundStatus}.`,
       type: 'cancellation',
     });
+
+    // Notify all admin users of the cancellation
+    try {
+      const admins = await User.find({ role: 'admin' });
+      const adminNotifications = admins.map(admin => ({
+        userId: admin._id,
+        title: 'Booking Cancelled by Customer',
+        message: `Booking ${booking.bookingId} has been cancelled by ${req.user.name}. Reason: ${reason || 'User cancelled'}.`,
+        type: 'cancellation'
+      }));
+      if (adminNotifications.length > 0) {
+        await Notification.insertMany(adminNotifications);
+      }
+    } catch (notifErr) {
+      console.error('Error creating admin notification for cancellation:', notifErr);
+    }
 
     return res.json({
       success: true,

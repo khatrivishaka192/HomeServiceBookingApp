@@ -28,7 +28,11 @@ export default function WelcomeScreen() {
     }
 
     if (user?.isLoggedIn) {
-      router.replace('/(tabs)/home');
+      if (user.role === 'admin') {
+        router.replace('/admin/dashboard');
+      } else {
+        router.replace('/(tabs)/home');
+      }
       return;
     }
 

@@ -103,6 +103,10 @@ export default function LoginScreen() {
           Don't have an account? <Text style={styles.switchLink}>Sign up</Text>
         </Text>
       </TouchableOpacity>
+<TouchableOpacity style={styles.adminSwitchWrap} onPress={() => router.push('/admin/login')} disabled={loading}>
+        <Text style={styles.adminSwitchText}>Access Admin Portal</Text>
+      </TouchableOpacity>
+      
     </ScreenContainer>
   );
 }
@@ -186,5 +190,15 @@ const styles = StyleSheet.create({
   switchLink: {
     color: COLORS.primary,
     fontWeight: '700',
+  },
+  adminSwitchWrap: {
+    marginTop: 12,
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  adminSwitchText: {
+    color: COLORS.primary,
+    fontWeight: '700',
+    fontSize: 14,
   },
 });

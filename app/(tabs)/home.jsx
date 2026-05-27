@@ -194,9 +194,9 @@ const filteredRecommendedServices = useMemo(() => {
       <View style={styles.filtersRow}>
         {[
           { key: 'All', label: 'All Services', icon: 'grid-outline' },
-          { key: 'HighRating', label: 'Top Rated (4.7+)', icon: 'star-outline' },
+          //{ key: 'HighRating', label: 'Top Rated (4.7+)', icon: 'star-outline' },
           { key: 'PriceLow', label: 'Budget Friendly', icon: 'cash-outline' },
-          { key: 'Saved', label: 'My Saved', icon: 'heart-outline' },
+          //{ key: 'Saved', label: 'My Saved', icon: 'heart-outline' },
         ].map((tag) => {
           const isActive = selectedFilter === tag.key;
           return (

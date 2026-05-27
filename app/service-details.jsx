@@ -8,6 +8,8 @@ import AppImage from '../components/AppImage';
 import ScreenContainer from '../components/ScreenContainer';
 import { useResponsive } from '../hooks/useResponsive';
 
+import { services as staticServices } from '../data/services';
+
 export default function ServiceDetailsScreen() {
   const { serviceId } = useLocalSearchParams();
   const router = useRouter();
@@ -15,20 +17,27 @@ export default function ServiceDetailsScreen() {
   const { services } = useBookings();
 
   const service = useMemo(() => {
-    return services.map(s => ({
-      id: s.serviceId,
-      name: s.name,
-      category: s.category,
-      description: s.description,
-      price: s.price,
-      image: s.image
-    })).find((item) => item.id === serviceId) || {
-      id: '',
-      name: 'Service Details',
-      category: 'General',
-      description: 'Loading service details...',
-      price: 0,
-      image: ''
+    const dbService = services.find((s) => s.serviceId === serviceId);
+    const staticService = staticServices.find((s) => s.id === serviceId);
+
+    if (!dbService && !staticService) {
+      return {
+        id: '',
+        name: 'Service Details',
+        category: 'General',
+        description: 'Loading service details...',
+        price: 0,
+        image: ''
+      };
+    }
+
+    return {
+      id: serviceId,
+      name: dbService?.name || staticService?.name || '',
+      category: dbService?.category || staticService?.category || '',
+      description: dbService?.description || staticService?.description || '',
+      price: dbService?.price || staticService?.price || 0,
+      image: staticService?.image || dbService?.image || '' // Prefer static service image so local images match card
     };
   }, [services, serviceId]);
 
