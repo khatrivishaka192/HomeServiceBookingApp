@@ -22,10 +22,6 @@ export default function ServiceCard({ item, onPress, compact = false }) {
         </Text>
         <View style={styles.footer}>
           <Text style={styles.price}>Rs. {item.price}</Text>
-          <View style={styles.ratingWrap}>
-            <Ionicons name="star" size={14} color={COLORS.warning} />
-            <Text style={styles.rating}>{item.rating}</Text>
-          </View>
         </View>
       </View>
     </Pressable>

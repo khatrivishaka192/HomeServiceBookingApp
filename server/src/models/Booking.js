@@ -77,6 +77,20 @@ const bookingSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    providerId: {
+      type: String,
+      default: '',
+    },
+    providerName: {
+      type: String,
+      default: '',
+    },
+    statusHistory: [
+      {
+        status: { type: String, required: true },
+        timestamp: { type: Date, default: Date.now },
+      }
+    ],
   },
   {
     timestamps: true,
@@ -103,6 +117,9 @@ bookingSchema.methods.toClientJSON = function toClientJSON(userEmail = '') {
     subtotal: this.subtotal,
     serviceCharge: this.serviceCharge,
     totalPayment: this.totalPayment,
+    providerId: this.providerId,
+    providerName: this.providerName,
+    statusHistory: this.statusHistory || [],
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };

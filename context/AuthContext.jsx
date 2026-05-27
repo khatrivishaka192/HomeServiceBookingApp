@@ -120,7 +120,7 @@ export function AuthProvider({ children }) {
   );
 
   const loginUser = useCallback(
-    async ({ email, password }) => {
+    async ({ email, password, isAdminLogin = false }) => {
       const normalizedEmail = email.trim().toLowerCase();
       const trimmedPassword = password.trim();
 
@@ -143,6 +143,16 @@ export function AuthProvider({ children }) {
         const data = await res.json();
 
         if (res.status === 200 && data.success) {
+          // Role-based auth verification for admin dashboard
+          if (isAdminLogin && data.user.role !== 'admin') {
+            return { success: false, message: 'Unauthorized. Admin credentials required.' };
+          }
+
+          // Blocked account checking
+          if (data.user.status === 'blocked') {
+            return { success: false, message: 'Your account has been blocked. Contact administrator.' };
+          }
+
           await AsyncStorage.setItem(TOKEN_STORAGE_KEY, data.token);
           setUser({
             id: data.user.id || data.user._id,
@@ -150,6 +160,7 @@ export function AuthProvider({ children }) {
             email: data.user.email,
             phone: data.user.phone,
             role: data.user.role,
+            status: data.user.status || 'active',
             isLoggedIn: true,
           });
           return { success: true };

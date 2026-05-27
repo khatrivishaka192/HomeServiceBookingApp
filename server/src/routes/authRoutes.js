@@ -111,4 +111,37 @@ router.get('/me', async (req, res) => {
   }
 });
 
+// Admin-only route to list all users
+router.get('/admin/users', async (req, res) => {
+  try {
+    const header = req.headers.authorization || '';
+    const [scheme, token] = header.split(' ');
+    if (scheme !== 'Bearer' || !token) {
+      return res.status(401).json({ success: false, message: 'Authentication required.' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const adminUser = await User.findById(decoded.userId);
+    if (!adminUser || adminUser.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Forbidden. Admin privileges required.' });
+    }
+
+    const users = await User.find().sort({ createdAt: -1 });
+    return res.json({
+      success: true,
+      users: users.map(user => ({
+        id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        createdAt: user.createdAt
+      }))
+    });
+  } catch (err) {
+    console.error('Fetch admin users error:', err);
+    return res.status(500).json({ success: false, message: 'Internal server error.' });
+  }
+});
+
 export default router;

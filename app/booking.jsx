@@ -7,6 +7,7 @@ import BookingSuccessModal from '../components/BookingSuccessModal';
 import ScreenContainer from '../components/ScreenContainer';
 import { useBookings } from '../context/BookingsContext';
 import { useResponsive } from '../hooks/useResponsive';
+import { Ionicons } from '@expo/vector-icons';
 
 function parseTimeToMinutes(value) {
   const match = value.trim().match(/^(\d{1,2}):([0-5]\d)\s?(AM|PM)$/i);
@@ -47,9 +48,11 @@ export default function BookingScreen() {
   const [loading, setLoading] = useState(false);
   const [successBooking, setSuccessBooking] = useState(null);
 
+  // New Modern App States (Promo codes removed)
+  const [paymentMethod, setPaymentMethod] = useState('Cash on Service');
+
   const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
   const timeRegex = /^(\d{1,2}):[0-5]\d\s?(AM|PM)$/i;
-  const paymentMethod = 'Cash on Service';
 
   const toggleService = (selectedServiceId) => {
     setSelectedItems((prev) => {
@@ -85,12 +88,19 @@ export default function BookingScreen() {
           };
         })
         .filter(Boolean),
-    [selectedItems],
+    [selectedItems, services],
   );
 
   const subtotal = selectedServiceDetails.reduce((sum, item) => sum + item.total, 0);
   const serviceCharge = selectedServiceDetails.length > 0 ? 99 : 0;
-  const totalPayment = subtotal + serviceCharge;
+  
+  const gstTax = useMemo(() => {
+    return Math.round(subtotal * 0.05); // 5% GST Tax
+  }, [subtotal]);
+
+  const totalPayment = useMemo(() => {
+    return Math.max(0, subtotal + serviceCharge + gstTax);
+  }, [subtotal, serviceCharge, gstTax]);
 
   const handleConfirm = async () => {
     setError('');
@@ -277,19 +287,53 @@ export default function BookingScreen() {
               selectionColor={COLORS.primary}
               editable={!loading}
             />
+
+            {/* Payment Method Selector */}
+            <Text style={styles.label}>Payment Method</Text>
+            <View style={styles.paymentSelectorWrap}>
+              {[
+                { id: 'Cash on Service', label: 'Cash', icon: 'cash-outline' },
+                { id: 'Card', label: 'Card Payment', icon: 'card-outline' },
+                { id: 'Wallet', label: 'Digital Wallet', icon: 'wallet-outline' }
+              ].map((method) => {
+                const isSelected = paymentMethod === method.id;
+                return (
+                  <TouchableOpacity
+                    key={method.id}
+                    style={[styles.paymentChip, isSelected && styles.paymentChipActive]}
+                    onPress={() => setPaymentMethod(method.id)}
+                    disabled={loading}>
+                    <Ionicons name={method.icon} size={15} color={isSelected ? COLORS.white : COLORS.subText} />
+                    <Text style={[styles.paymentChipText, isSelected && styles.paymentChipTextActive]}>{method.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Cancellation Policy Notice */}
+            <View style={styles.policyBox}>
+              <Ionicons name="shield-checkmark-outline" size={16} color={COLORS.primary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.policyTitle}>Cancellation Policy</Text>
+                <Text style={styles.policyText}>Bookings can be cancelled up to 2 hours before the scheduled time for a 100% refund.</Text>
+              </View>
+            </View>
           </View>
 
           <View style={[styles.sideColumn, isDesktop && styles.sideColumnDesktop]}>
             <View style={styles.summaryBox}>
-              <Text style={styles.summaryTitle}>Booking Summary</Text>
+              <Text style={styles.summaryTitle}>Detailed Tax Invoice</Text>
               <Text style={styles.summaryLine}>Services Selected: {selectedServiceDetails.length}</Text>
-              <Text style={styles.summaryLine}>Date: {date}</Text>
-              <Text style={styles.summaryLine}>Time: {time}</Text>
-              <Text style={styles.summaryLine}>Contact: {contactNumber || '—'}</Text>
-              <Text style={styles.summaryLine}>Payment Method: {paymentMethod}</Text>
-              <Text style={styles.summaryLine}>Subtotal: Rs. {subtotal}</Text>
-              <Text style={styles.summaryLine}>Service Charge: Rs. {serviceCharge}</Text>
-              <Text style={styles.totalLine}>Total Payment: Rs. {totalPayment}</Text>
+              <Text style={styles.summaryLine}>Scheduled Date: {date}</Text>
+              <Text style={styles.summaryLine}>Scheduled Time: {time}</Text>
+              <Text style={styles.summaryLine}>Contact Phone: {contactNumber || '—'}</Text>
+              <Text style={styles.summaryLine}>Payment: {paymentMethod}</Text>
+              <View style={styles.invoiceDivider} />
+              <View style={styles.invoiceRow}><Text style={styles.invoiceLabel}>Subtotal</Text><Text style={styles.invoiceValue}>Rs. {subtotal}</Text></View>
+              <View style={styles.invoiceRow}><Text style={styles.invoiceLabel}>Service Fee</Text><Text style={styles.invoiceValue}>Rs. {serviceCharge}</Text></View>
+              <View style={styles.invoiceRow}><Text style={styles.invoiceLabel}>GST Tax (5%)</Text><Text style={styles.invoiceValue}>Rs. {gstTax}</Text></View>
+              <View style={styles.invoiceDivider} />
+              <View style={styles.invoiceRow}><Text style={styles.totalLabel}>Total Payment</Text><Text style={styles.totalValue}>Rs. {totalPayment}</Text></View>
             </View>
 
             <Pressable
@@ -480,7 +524,8 @@ const styles = StyleSheet.create({
   },
   summaryLine: {
     color: COLORS.subText,
-    marginBottom: 3,
+    marginBottom: 4,
+    fontSize: 13,
   },
   totalLine: {
     color: COLORS.text,
@@ -503,5 +548,118 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontWeight: '700',
     fontSize: 16,
+  },
+  paymentSelectorWrap: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  paymentChip: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 10,
+    paddingVertical: 10,
+  },
+  paymentChipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  paymentChipText: {
+    fontSize: 12,
+    color: COLORS.subText,
+    fontWeight: '700',
+  },
+  paymentChipTextActive: {
+    color: COLORS.white,
+  },
+  promoInputWrap: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4,
+  },
+  promoInput: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+    color: COLORS.text,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 13,
+  },
+  promoBtn: {
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+    paddingHorizontal: 16,
+  },
+  promoBtnApplied: {
+    backgroundColor: COLORS.success,
+  },
+  promoBtnText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 13,
+  },
+  policyBox: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(59, 130, 246, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.2)',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 16,
+    gap: 8,
+  },
+  policyTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: COLORS.text,
+  },
+  policyText: {
+    fontSize: 11,
+    color: COLORS.subText,
+    lineHeight: 15,
+    marginTop: 2,
+  },
+  invoiceDivider: {
+    height: 1,
+    backgroundColor: COLORS.border,
+    marginVertical: 10,
+  },
+  invoiceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  invoiceLabel: {
+    fontSize: 13,
+    color: COLORS.subText,
+    fontWeight: '600',
+  },
+  invoiceValue: {
+    fontSize: 13,
+    color: COLORS.text,
+    fontWeight: '700',
+  },
+  totalLabel: {
+    fontSize: 14,
+    color: COLORS.text,
+    fontWeight: '800',
+  },
+  totalValue: {
+    fontSize: 16,
+    color: COLORS.primary,
+    fontWeight: '800',
   },
 });

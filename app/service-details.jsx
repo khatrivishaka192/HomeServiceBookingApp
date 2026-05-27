@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { services } from '../data/services';
+import { useBookings } from '../context/BookingsContext';
 import { COLORS } from '../constants/appTheme';
 import AppImage from '../components/AppImage';
 import ScreenContainer from '../components/ScreenContainer';
@@ -12,7 +12,25 @@ export default function ServiceDetailsScreen() {
   const { serviceId } = useLocalSearchParams();
   const router = useRouter();
   const { isDesktop } = useResponsive();
-  const service = services.find((item) => item.id === serviceId) || services[0];
+  const { services } = useBookings();
+
+  const service = useMemo(() => {
+    return services.map(s => ({
+      id: s.serviceId,
+      name: s.name,
+      category: s.category,
+      description: s.description,
+      price: s.price,
+      image: s.image
+    })).find((item) => item.id === serviceId) || {
+      id: '',
+      name: 'Service Details',
+      category: 'General',
+      description: 'Loading service details...',
+      price: 0,
+      image: ''
+    };
+  }, [services, serviceId]);
 
   return (
     <ScreenContainer scroll topPadding={0} contentStyle={styles.contentWrap}>
@@ -20,10 +38,6 @@ export default function ServiceDetailsScreen() {
       <View style={[styles.content, isDesktop && styles.contentDesktop]}>
         <Text style={styles.name}>{service.name}</Text>
         <Text style={styles.category}>{service.category}</Text>
-        <View style={styles.ratingRow}>
-          <Ionicons name="star" size={16} color={COLORS.warning} />
-          <Text style={styles.rating}>{service.rating} Rating</Text>
-        </View>
         <Text style={styles.description}>{service.description}</Text>
         <Text style={styles.price}>Starting from Rs. {service.price}</Text>
 

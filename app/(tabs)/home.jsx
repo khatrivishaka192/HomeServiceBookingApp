@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -11,13 +11,45 @@ import BannerSlider from '../../components/BannerSlider';
 import { HERO_HOME_IMAGE } from '../../constants/images';
 import ScreenContainer from '../../components/ScreenContainer';
 import { useAuth } from '../../context/AuthContext';
+import { useBookings } from '../../context/BookingsContext';
 import { useResponsive } from '../../hooks/useResponsive';
+import { API_BASE_URL } from '../../utils/apiConfig';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, getToken } = useAuth();
+  const { favorites, isFavorite } = useBookings();
   const { categoryColumns, categoryGap, heroHeight } = useResponsive();
   const [searchText, setSearchText] = useState('');
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [selectedFilter, setSelectedFilter] = useState('All'); // 'All', 'HighRating', 'PriceLow', 'Saved'
+
+  // Fetch unread notifications count in real-time
+  useEffect(() => {
+    let active = true;
+    const fetchUnread = async () => {
+      const token = await getToken();
+      if (!token) return;
+      try {
+        const res = await fetch(`${API_BASE_URL}/notifications/unread/count`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (active && res.status === 200 && data.success) {
+          setUnreadCount(data.count || 0);
+        }
+      } catch (err) {
+        console.log('[Home Badge Error]', err);
+      }
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 15000); // Poll every 15s
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [getToken]);
+
   const popularServices = useMemo(
     () =>
       [
@@ -29,10 +61,31 @@ export default function HomeScreen() {
     [],
   );
   const normalizedQuery = searchText.trim().toLowerCase();
-  const matchesQuery = (item) =>
-    item.name.toLowerCase().includes(normalizedQuery) ||
-    item.category.toLowerCase().includes(normalizedQuery) ||
-    item.description.toLowerCase().includes(normalizedQuery);
+  
+  // Custom master services filtering based on search and chosen tag
+  const processedServices = useMemo(() => {
+    let list = [...services];
+    
+    // Apply search query
+    if (normalizedQuery) {
+      list = list.filter(item => 
+        item.name.toLowerCase().includes(normalizedQuery) ||
+        item.category.toLowerCase().includes(normalizedQuery) ||
+        item.description.toLowerCase().includes(normalizedQuery)
+      );
+    }
+
+    // Apply Filter Tags
+    if (selectedFilter === 'HighRating') {
+      list = list.filter(item => item.rating >= 4.7);
+    } else if (selectedFilter === 'PriceLow') {
+      list = list.sort((a, b) => a.price - b.price);
+    } else if (selectedFilter === 'Saved') {
+      list = list.filter(item => favorites.includes(item.id));
+    }
+
+    return list;
+  }, [normalizedQuery, selectedFilter, favorites]);
 
   const filteredCategories = useMemo(() => {
     if (!normalizedQuery) return categories;
@@ -40,14 +93,18 @@ export default function HomeScreen() {
   }, [normalizedQuery]);
 
   const filteredPopularServices = useMemo(() => {
-    if (!normalizedQuery) return popularServices;
-    return popularServices.filter((item) => matchesQuery(item));
-  }, [normalizedQuery, popularServices]);
-
-  const filteredRecommendedServices = useMemo(() => {
-    if (!normalizedQuery) return services.slice(0, 2);
-    return services.filter((item) => matchesQuery(item));
-  }, [normalizedQuery]);
+    let list = [...popularServices];
+    if (normalizedQuery) {
+      list = list.filter(item => 
+        item.name.toLowerCase().includes(normalizedQuery) ||
+        item.category.toLowerCase().includes(normalizedQuery)
+      );
+    }
+    if (selectedFilter === 'HighRating') {
+      list = list.filter(item => item.rating >= 4.7);
+    }
+    return list;
+  }, [normalizedQuery, selectedFilter, popularServices]);
 
   const openService = (item) => {
     router.push({ pathname: '/service-details', params: { serviceId: item.id } });
@@ -55,7 +112,33 @@ export default function HomeScreen() {
   const openCategory = (item) => {
     router.push({ pathname: '/category-services', params: { categoryId: item.id, categoryName: item.name } });
   };
+const filteredRecommendedServices = useMemo(() => {
+  let list = [...services];
 
+  // optional: remove popular duplicates if you want
+  list = list.filter(item => !['s1', 's2', 's3'].includes(item.id));
+
+  // search filter
+  if (normalizedQuery) {
+    list = list.filter(
+      item =>
+        item.name.toLowerCase().includes(normalizedQuery) ||
+        item.category.toLowerCase().includes(normalizedQuery) ||
+        item.description.toLowerCase().includes(normalizedQuery)
+    );
+  }
+
+  // filters
+  if (selectedFilter === 'HighRating') {
+    list = list.filter(item => item.rating >= 4.7);
+  } else if (selectedFilter === 'PriceLow') {
+    list = [...list].sort((a, b) => a.price - b.price);
+  } else if (selectedFilter === 'Saved') {
+    list = list.filter(item => favorites.includes(item.id));
+  }
+
+  return list;
+}, [normalizedQuery, selectedFilter, favorites]);
   return (
     <ScreenContainer scroll showsVerticalScrollIndicator={false}>
       <View style={styles.welcomeBar}>
@@ -73,8 +156,13 @@ export default function HomeScreen() {
           <Text style={styles.locationLabel}>Current Location</Text>
           <Text style={styles.location}>Lahore, Pakistan</Text>
         </View>
-        <TouchableOpacity style={styles.notificationBtn}>
+        <TouchableOpacity style={styles.notificationBtn} onPress={() => router.push('/notifications')}>
           <Ionicons name="notifications-outline" size={20} color={COLORS.primary} />
+          {unreadCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -102,14 +190,37 @@ export default function HomeScreen() {
         />
       </View>
 
-      {normalizedQuery ? (
+      {/* Filter Tag Chips Row */}
+      <View style={styles.filtersRow}>
+        {[
+          { key: 'All', label: 'All Services', icon: 'grid-outline' },
+          { key: 'HighRating', label: 'Top Rated (4.7+)', icon: 'star-outline' },
+          { key: 'PriceLow', label: 'Budget Friendly', icon: 'cash-outline' },
+          { key: 'Saved', label: 'My Saved', icon: 'heart-outline' },
+        ].map((tag) => {
+          const isActive = selectedFilter === tag.key;
+          return (
+            <TouchableOpacity
+              key={tag.key}
+              style={[styles.filterChip, isActive && styles.filterChipActive]}
+              onPress={() => setSelectedFilter(tag.key)}>
+              <Ionicons name={tag.icon} size={13} color={isActive ? COLORS.white : COLORS.subText} style={{ marginRight: 4 }} />
+              <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>{tag.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {normalizedQuery || selectedFilter !== 'All' ? (
         <View>
-          <Text style={styles.searchingText}>Showing results for "{searchText.trim()}"</Text>
-          {filteredRecommendedServices.map((item) => (
+          <Text style={styles.searchingText}>
+            Showing filtered services ({processedServices.length})
+          </Text>
+          {processedServices.map((item) => (
             <ServiceCard key={item.id} item={item} compact onPress={openService} />
           ))}
-          {filteredRecommendedServices.length === 0 && (
-            <Text style={styles.emptyText}>No services match your search.</Text>
+          {processedServices.length === 0 && (
+            <Text style={styles.emptyText}>No services match your filters.</Text>
           )}
         </View>
       ) : (
@@ -290,5 +401,51 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginBottom: 10,
     fontStyle: 'italic',
+  },
+  badge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: COLORS.danger,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '800',
+  },
+  filtersRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 14,
+    alignItems: 'center',
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  filterChipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  filterChipText: {
+    fontSize: 11,
+    color: COLORS.subText,
+    fontWeight: '700',
+  },
+  filterChipTextActive: {
+    color: COLORS.white,
   },
 });
